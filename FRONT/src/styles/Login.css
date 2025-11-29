@@ -1,0 +1,108 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #fafafa;
+  font-family: "Arial", sans-serif;
+  padding: 20px;
+}
+
+.login-box {
+  width: 350px;
+  padding: 30px;
+  background: #fff;
+  border: 1px solid #dbdbdb;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.login-title {
+  font-family: "Billabong", cursive;
+  font-size: 48px;
+  margin-bottom: 25px;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid #dbdbdb;
+  border-radius: 6px;
+  background: #fafafa;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.login-form input:focus {
+  border-color: #0095f6;
+  background: #fff;
+  outline: none;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(45deg, #1e90ff, #00fa9a, #ffffff); /* تعديل اللون */
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.login-btn:hover {
+  opacity: 0.9;
+}
+
+.login-footer {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #262626;
+}
+
+.login-link {
+  color: #0095f6;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.login-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .login-box {
+    width: 90%;
+    padding: 25px;
+  }
+
+  .login-title {
+    font-size: 36px;
+  }
+
+  .login-form input,
+  .login-btn {
+    padding: 10px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-box {
+    width: 100%;
+    padding: 20px;
+    border: none;
+    box-shadow: none;
+  }
+
+  .login-title {
+    font-size: 32px;
+  }
+
+  .login-btn {
+    font-size: 13px;
+  }
+}

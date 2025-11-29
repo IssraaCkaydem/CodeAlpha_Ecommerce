@@ -1,0 +1,40 @@
+/* AdminDashboard.css */
+
+.admin-container {
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f5f6fa;
+  min-height: 100vh;
+}
+
+.admin-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 40px;
+  color: #2f3640;
+}
+
+.admin-button-group {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.admin-button {
+  padding: 12px 30px;
+  font-size: 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #fff;
+  background-color: #4cd137;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.admin-button:hover {
+  background-color: #44bd32;
+}

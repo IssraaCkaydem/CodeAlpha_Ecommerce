@@ -1,0 +1,36 @@
+/* AdminProducts.css */
+
+.container {
+  padding: 20px;
+}
+
+.message {
+  margin: 10px 0;
+  color: green;
+}
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.table th,
+.table td {
+  border: 1px solid #e4e2e2;
+  padding: 10px;
+}
+
+.table th {
+  background-color: #f2f2f2;
+}
+
+.action-btn {
+  margin-right: 10px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.no-products {
+  font-style: italic;
+  margin-top: 10px;
+}

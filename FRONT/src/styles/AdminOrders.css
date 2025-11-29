@@ -1,0 +1,47 @@
+.admin-orders-container {
+  padding: 30px;
+  background-color: #f5f6fa;
+  min-height: 100vh;
+}
+
+.admin-orders-container h1 {
+  text-align: center;
+  color: #2f3640;
+  margin-bottom: 30px;
+  font-size: 2rem;
+}
+
+.order-card {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+  padding: 20px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.order-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
+
+.order-card p {
+  margin: 5px 0;
+  color: #333;
+}
+
+.order-card select {
+  padding: 5px 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.items-list {
+  list-style: disc;
+  padding-left: 20px;
+}
+
+.status-label {
+  font-weight: bold;
+  margin-right: 10px;
+}

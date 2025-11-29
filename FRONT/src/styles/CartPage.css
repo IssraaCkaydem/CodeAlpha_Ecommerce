@@ -1,0 +1,99 @@
+.cart-container {
+  padding: 30px;
+  max-width: 900px;
+  margin: auto;
+  background: linear-gradient(45deg, #1e90ff, #00fa9a, #ffffff);
+  border-radius: 15px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+
+.cart-title {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #000;
+  font-weight: bold;
+}
+
+.empty-cart {
+  text-align: center;
+  margin-top: 50px;
+  color: #333;
+}
+
+.cart-items {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+}
+
+.cart-item-img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  border-radius: 8px;
+  margin-right: 15px;
+}
+
+.cart-item-info {
+  flex: 1;
+}
+
+.remove-btn {
+  background: linear-gradient(45deg, #ff4d4d, #ff0000);
+  color: #fff;
+  font-weight: bold;
+}
+
+.remove-btn:hover {
+  opacity: 0.9;
+}
+
+.cart-total {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.clear-btn {
+  background: linear-gradient(45deg, #ff9900, #ffcc00);
+  color: #000;
+  font-weight: bold;
+}
+
+.clear-btn:hover {
+  opacity: 0.9;
+}
+
+.order-form {
+  padding: 20px;
+  margin-top: 20px;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.form-textarea {
+  width: 100%;
+  height: 80px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
