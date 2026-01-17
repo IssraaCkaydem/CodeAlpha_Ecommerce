@@ -3,7 +3,6 @@ require("dotenv").config({ path: "./secret.env" });
 const mongoose = require("mongoose");
 const Product = require("./models/Product");
 
-// ====== الاتصال بالـ MongoDB Atlas ======
 const dbUser = process.env.DB_USER;
 const dbPass = process.env.DB_PASS;
 const dbName = process.env.DB_NAME;
@@ -15,7 +14,6 @@ mongoose
   .then(() => console.log("Connected to MongoDB Atlas successfully"))
   .catch((error) => console.log("Error connecting to MongoDB Atlas", error));
 
-// ====== المنتجات ======
 const products = [
   { name: "iPhone 14", description: "Apple smartphone with A15 Bionic chip", price: 1200, imageUrl: "https://i5.walmartimages.com/seo/Used-Apple-iPhone-14-Plus-128GB-Purple-AT-T-MQ3U3LL-A-Used-Good-Condition_b1cba713-4e12-4073-91e2-78dd847287c7.849f7bf269723a95b744c13e031ae7c2.jpeg", category: "Smartphones" },
   { name: "iPhone 14 Pro", description: "Apple smartphone with A16 Bionic chip", price: 1400, imageUrl: "https://i5.walmartimages.com/seo/Pre-Owned-Apple-iPhone-14-Pro-512GB-Deep-Purple-FACTORY-UNLOCKED-Refurbished-Good_ff32246e-34a1-44eb-9486-9a390154ef55.269d1800ef84ec355c6c134a2e83ca5a.jpeg", category: "Smartphones" },

@@ -1,10 +1,12 @@
 
-import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import axios from "axios";
+import React, { useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { checkAuth, refreshToken } from "./services/authService";
+
 import Layout from "./user/components/Layout";
 
-// Components
+// Pages
 import Home from "./user/pages/Home";
 import Login from "./user/components/Login";
 import Register from "./user/components/Register";
@@ -14,84 +16,97 @@ import SearchPage from "./user/pages/SearchPage";
 import CartPage from "./user/pages/CartPage";
 import WishlistPage from "./user/pages/WishlistPage";
 import MyOrders from "./user/pages/MyOrders";
+import ContactPage from "./user/pages/ContactPage";
+import MyMessages from "./user/pages/MyMessages"; 
+import MyMessagesWrapper from "./user/pages/MyMessagesWrapper";
 
+
+
+// Admin Pages
 import AdminOrders from "./admin/pages/AdminOrders";
 import AdminDashboard from "./admin/pages/AdminDashboard";
 import AdminAddProduct from "./admin/pages/AdminAddProduct";
 import AdminProducts from "./admin/pages/AdminProducts";
 import AdminEditProduct from "./admin/pages/AdminEditProduct";
-
-
-// PrivateRoute Component
-function PrivateRoute({ isAuthenticated, children }) {
-  return isAuthenticated ? children : <Navigate to="/login" />;
+import AdminContact from "./admin/pages/AdminContact"
+/* =========================
+   Private Route (User)
+========================= */
+function PrivateRoute() {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
 }
 
-function AdminRoute({ children }) {
-  const role = localStorage.getItem("role");
-  return role === "admin" ? children : <Navigate to="/" />;
+/* =========================
+   Admin Route
+========================= */
+function AdminRoute() {
+  const { isAuthenticated, user } = useAuth();
+  return isAuthenticated && user?.role === "admin"
+    ? <Outlet />
+    : <Navigate to="/" replace />;
 }
 
+/* =========================
+   Routes
+========================= */
+function AppRoutes() {
+  const { setIsAuthenticated, setUser } = useAuth();
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
-
+  // 🔁 refresh token once when app loads
   useEffect(() => {
-    axios
-      .get("http://localhost:4000/api/auth/check", { withCredentials: true })
-      .then((res) => setIsAuthenticated(res.data.authenticated))
-      .catch(() => setIsAuthenticated(false));
-  }, []);
+    const verifyAuth = async () => {
+      try {
+        const data = await refreshToken(); // POST /auth/refresh
+        setIsAuthenticated(true);
+        setUser(data.user);
+      } catch {
+        setIsAuthenticated(false);
+        setUser(null);
+      }
+    };
 
-  if (isAuthenticated === null) return <p>Loading...</p>;
+    verifyAuth();
+  }, [setIsAuthenticated, setUser]);
 
   return (
     <Router>
       <Routes>
 
-        <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
-        <Route path="/register" element={<Register setIsAuthenticated={setIsAuthenticated} />} />
+        {/* ===== Auth ===== */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-        <Route element={<PrivateRoute isAuthenticated={isAuthenticated}><Layout setIsAuthenticated={setIsAuthenticated} /></PrivateRoute>}>
+        <Route element={<Layout />}>
 
+          {/* ===== Public ===== */}
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<Products />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/product/:id" element={<ProductDetails />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/wishlist" element={<WishlistPage />} />
-          <Route path="/my-orders" element={<MyOrders />} />
+          <Route path="/contact" element={<ContactPage />} />
+
+          {/* ===== User Protected ===== */}
+          <Route element={<PrivateRoute />}>
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/wishlist" element={<WishlistPage />} />
+            <Route path="/my-orders" element={<MyOrders />} />
+            <Route path="/my-messages" element={<MyMessagesWrapper />} />
+          </Route>
+
         </Route>
 
-        <Route
-          path="/admin/dashboard"
-          element={
-            <AdminRoute>
-              <AdminDashboard />
-            </AdminRoute>
-          }
-        />
+        {/* ===== Admin ===== */}
+        <Route element={<AdminRoute />}>
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/orders" element={<AdminOrders />} />
+          <Route path="/admin/add-product" element={<AdminAddProduct />} />
+          <Route path="/admin/products" element={<AdminProducts />} />
+          <Route path="/admin/edit-product/:id" element={<AdminEditProduct />} />
+          <Route path="/admin/contact" element={<AdminContact />} />
+        </Route>
 
-        <Route
-          path="/admin/orders"
-          element={
-            <AdminRoute>
-              <AdminOrders />
-            </AdminRoute>
-          }
-        />
-        <Route
-  path="/admin/add-product"
-  element={
-    <AdminRoute>
-      <AdminAddProduct />
-    </AdminRoute>
-  }
-/>
-
-<Route path="/admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>} />
-<Route path="/admin/edit-product/:id" element={<AdminRoute><AdminEditProduct /></AdminRoute>} />
-
+        {/* ===== Fallback ===== */}
         <Route path="*" element={<Navigate to="/" />} />
 
       </Routes>
@@ -99,5 +114,13 @@ function App() {
   );
 }
 
-export default App;
-
+/* =========================
+   App
+========================= */
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
+  );
+}

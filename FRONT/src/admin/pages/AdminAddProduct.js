@@ -1,9 +1,8 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import axiosClient from "../../api/axiosClient"; 
+import axiosClient from "../../api/axiosClient";
 import { useNavigate } from "react-router-dom";
-import "../../styles/AdminAddProduct.css";
 
 export default function AdminAddProduct() {
   const navigate = useNavigate();
@@ -60,72 +59,97 @@ export default function AdminAddProduct() {
   };
 
   return (
-    <motion.div
-      className="admin-add-container"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-    >
-      <h1>Add New Product</h1>
+    <div className="min-h-screen p-10 bg-gradient-to-br from-sky-500 via-emerald-400 to-white">
+      
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-6 text-white/90 hover:text-white transition"
+      >
+        ← Back
+      </button>
 
-      {message && <p className={message.includes("Error") ? "error-message" : "message"}>{message}</p>}
+      <motion.div
+        className="max-w-lg mx-auto p-10 bg-white rounded-xl shadow-lg"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <h1 className="text-2xl text-center text-gray-800 mb-6 font-bold">
+          Add New Product
+        </h1>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="name"
-          placeholder="Product Name"
-          value={formData.name}
-          onChange={handleChange}
-          required
-        />
+        {message && (
+          <p className={`text-center font-bold mb-4 ${message.includes("Error") ? "text-red-600" : "text-green-600"}`}>
+            {message}
+          </p>
+        )}
 
-        <input
-          type="text"
-          name="description"
-          placeholder="Description"
-          value={formData.description}
-          onChange={handleChange}
-        />
+        <form className="flex flex-col" onSubmit={handleSubmit}>
+          <input
+            type="text"
+            name="name"
+            placeholder="Product Name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+            className="mb-4 px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-400"
+          />
 
-        <input
-          type="number"
-          name="price"
-          placeholder="Price"
-          value={formData.price}
-          onChange={handleChange}
-          required
-        />
+          <input
+            type="text"
+            name="description"
+            placeholder="Description"
+            value={formData.description}
+            onChange={handleChange}
+            className="mb-4 px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-400"
+          />
 
-        <input
-          type="file"
-          name="image"
-          accept="image/*"
-          onChange={handleFileChange}
-          required
-        />
-{formData.imageUrl && (
-  <img
-    src={formData.imageUrl} 
-    alt="Preview"
-    width={150}
-    style={{ marginTop: "10px" }}
-  />
-)}
+          <input
+            type="number"
+            name="price"
+            placeholder="Price"
+            value={formData.price}
+            onChange={handleChange}
+            required
+            className="mb-4 px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-400"
+          />
 
+          <input
+            type="file"
+            name="image"
+            accept="image/*"
+            onChange={handleFileChange}
+            required
+            className="mb-4"
+          />
 
-        <input
-          type="text"
-          name="category"
-          placeholder="Category"
-          value={formData.category}
-          onChange={handleChange}
-        />
+          {formData.imageUrl && (
+            <img
+              src={formData.imageUrl}
+              alt="Preview"
+              className="w-36 h-auto mb-4 mx-auto rounded-md"
+            />
+          )}
 
-        <button type="submit" disabled={uploading}>
-          {uploading ? "Uploading..." : "Add Product"}
-        </button>
-      </form>
-    </motion.div>
+          <input
+            type="text"
+            name="category"
+            placeholder="Category"
+            value={formData.category}
+            onChange={handleChange}
+            className="mb-6 px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-400"
+          />
+
+          <button
+            type="submit"
+            disabled={uploading}
+            className="py-3 bg-green-500 text-white font-bold rounded-md hover:bg-green-600 transition"
+          >
+            {uploading ? "Uploading..." : "Add Product"}
+          </button>
+        </form>
+      </motion.div>
+    </div>
   );
 }

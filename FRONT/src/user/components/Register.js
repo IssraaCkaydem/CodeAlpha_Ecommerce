@@ -1,24 +1,19 @@
 
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axiosClient from "../../api/axiosClient"; 
+import { motion } from "framer-motion";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
-import { motion } from "framer-motion";
-import "../../styles/Register.css"; 
+import { useAuth } from "../../context/AuthContext";
+import { register } from "../../services/authService";
+import '../../styles/tailwind.css';
 
-export default function Register({ setIsAuthenticated }) {
+
+export default function Register() {
+  const { setIsAuthenticated, setUser } = useAuth();
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const navigate = useNavigate();
-
-  useEffect(() => {
-    setFormData({ name: "", email: "", password: "" });
-  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,94 +22,134 @@ export default function Register({ setIsAuthenticated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-      console.log("Base URL:", process.env.REACT_APP_API_URL); 
-
-
     try {
-      const res = await axiosClient.post("/auth/register", formData); 
+      const res = await register(formData);
 
-      if (res.data.success) {
+      if (res.success) {
         setIsAuthenticated(true);
+        setUser(res.user);
 
         setSnackbar({
           open: true,
-          message: res.data.msg || "Registered successfully!",
+          message: res.message || "Registered successfully!",
           severity: "success",
         });
 
-        setTimeout(() => navigate("/"), 1000);
-      } else {
-        setSnackbar({
-          open: true,
-          message: res.data.msg || "Registration failed!",
-          severity: "error",
-        });
+        setTimeout(() => {
+          navigate(res.user.role === "admin" ? "/admin/dashboard" : "/");
+        }, 1000);
       }
     } catch (err) {
-      const msg =
-        err.response?.data?.msg ||
-        (err.response?.data?.errors && err.response.data.errors.join(", ")) ||
-        "Registration failed!";
-      setSnackbar({ open: true, message: msg, severity: "error" });
+      setSnackbar({ open: true, message: err.message, severity: "error" });
     }
   };
 
   return (
-    <div className="register-container">
+    <div className="min-h-screen flex items-center justify-center bg-[#fafafa] p-5 font-sans">
       <motion.div
-        className="register-box"
         initial={{ opacity: 0, y: 60 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
+        className="
+          w-[350px] 
+          bg-white 
+          border border-gray-300 
+          rounded-xl 
+          shadow-md 
+          p-8 
+          text-center
+          max-md:w-[90%]
+          max-sm:w-full max-sm:border-none max-sm:shadow-none
+        "
       >
-        <h1 className="register-logo">ElectroShop</h1>
+        <h1 className="font-['Billabong'] text-5xl mb-6 max-md:text-4xl">
+          ElectroShop
+        </h1>
 
-        <form onSubmit={handleSubmit} className="register-form" autoComplete="off">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <motion.input
             type="text"
             name="name"
             placeholder="Full Name"
             value={formData.name}
             onChange={handleChange}
-            className="register-input"
-            required
             whileFocus={{ scale: 1.02 }}
+            required
+            className="
+              w-full p-3 text-sm 
+              bg-[#fafafa] 
+              border border-gray-300 
+              rounded-md 
+              focus:outline-none 
+              focus:border-blue-500 
+              focus:bg-white
+            "
           />
+
           <motion.input
             type="email"
             name="email"
             placeholder="Email"
             value={formData.email}
             onChange={handleChange}
-            className="register-input"
-            required
             whileFocus={{ scale: 1.02 }}
+            required
+            className="
+              w-full p-3 text-sm 
+              bg-[#fafafa] 
+              border border-gray-300 
+              rounded-md 
+              focus:outline-none 
+              focus:border-blue-500 
+              focus:bg-white
+            "
           />
+
           <motion.input
             type="password"
             name="password"
             placeholder="Password"
             value={formData.password}
             onChange={handleChange}
-            className="register-input"
-            required
-            autoComplete="new-password"
             whileFocus={{ scale: 1.02 }}
+            autoComplete="new-password"
+            required
+            className="
+              w-full p-3 text-sm 
+              bg-[#fafafa] 
+              border border-gray-300 
+              rounded-md 
+              focus:outline-none 
+              focus:border-blue-500 
+              focus:bg-white
+            "
           />
 
           <motion.button
             type="submit"
-            className="register-btn"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            className="
+              mt-2
+              w-full 
+              py-3 
+              rounded-md 
+              text-white 
+              font-bold 
+              bg-gradient-to-r 
+              from-blue-500 
+              via-emerald-400 
+              to-white
+              hover:opacity-90
+            "
           >
             Sign Up
           </motion.button>
         </form>
 
-        <p className="register-text">
+        <p className="mt-4 text-sm text-gray-800">
           Already have an account?{" "}
-          <Link to="/login" className="register-link">
+          <Link to="/login" className="text-blue-500 font-bold hover:underline">
             Login
           </Link>
         </p>
@@ -126,9 +161,9 @@ export default function Register({ setIsAuthenticated }) {
         onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
       >
         <Alert
-          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
           severity={snackbar.severity}
           variant="filled"
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
         >
           {snackbar.message}
         </Alert>

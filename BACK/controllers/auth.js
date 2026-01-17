@@ -1,119 +1,122 @@
 
-const User = require("../models/User");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+
 const asyncHandler = require("../utils/asyncHandler");
+const AuthService = require("../services/auth.service");
+const jwt = require("jsonwebtoken");
+const User = require("../models/User"); 
+const isProduction = false;  
 
-// REGISTER
+const cookieOptions = {
+  httpOnly: true,
+  secure: false,
+  sameSite: "lax",
+  path: "/",
+};
+
+
+// ===== REGISTER =====
 exports.registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
+  const { newUser, accessToken, refreshToken } = await AuthService.register(req.body);
 
-  const existingUser = await User.findOne({ email });
-  if (existingUser) {
-    const err = new Error("Email already exists");
-    err.statusCode = 400;
-    throw err;
-  }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  const newUser = await User.create({
-    name,
-    email,
-    password: hashedPassword,
+  res.cookie("accessToken", accessToken, {
+    ...cookieOptions,
+    maxAge: 15 * 60 * 1000, // 15 minutes
   });
 
-  const token = jwt.sign(
-    { id: newUser._id, role: newUser.role },
-    process.env.JWT_SECRET,
-    { expiresIn: "7d" }
-  );
-
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: false,
-    sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+  res.cookie("refreshToken", refreshToken, {
+    ...cookieOptions,
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
   res.status(201).json({
     success: true,
-    msg: "User registered",
-    token,
+    message: "User registered",
     user: {
       id: newUser._id,
       name: newUser.name,
       email: newUser.email,
       role: newUser.role,
     },
+      accessToken,
+  refreshToken
   });
 });
 
-// LOGIN
+// ===== LOGIN =====
 exports.loginUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { user, accessToken, refreshToken } = await AuthService.login(req.body);
 
-  const user = await User.findOne({ email });
-  if (!user) {
-    const err = new Error("Invalid email");
-    err.statusCode = 400;
-    throw err;
-  }
+  res.cookie("accessToken", accessToken, {
+    ...cookieOptions,
+    maxAge: 15 * 60 * 1000,
+  });
 
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    const err = new Error("Invalid password");
-    err.statusCode = 400;
-    throw err;
-  }
-
-  const token = jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: "7d" }
-  );
-
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: false,
-    sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+  res.cookie("refreshToken", refreshToken, {
+    ...cookieOptions,
+    maxAge: 30 * 24 * 60 * 60 * 1000,
   });
 
   res.status(200).json({
     success: true,
     message: "Login successful",
-    token,
     user: {
       id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
     },
+      accessToken,
+  refreshToken
   });
+
 });
 
-// CHECK AUTH
+// ===== CHECK AUTH =====
 exports.checkAuth = asyncHandler(async (req, res) => {
-  const token =
-    req.cookies.token || req.headers.authorization?.split(" ")[1];
+  const token = req.cookies.accessToken;
 
-  if (!token) {
-    return res.json({ authenticated: false });
+  if (!token) return res.json({ authenticated: false, needRefresh: true });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select("-password -refreshToken");
+    return res.json({ authenticated: true, user });
+  } catch {
+    return res.json({ authenticated: false, needRefresh: true });
   }
-
-  jwt.verify(token, process.env.JWT_SECRET);
-
-  res.json({ authenticated: true });
 });
 
-// LOGOUT
-exports.logoutUser = asyncHandler(async (req, res) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    secure: false,
-    sameSite: "lax",
+
+// ===== REFRESH TOKEN =====
+exports.refreshToken = asyncHandler(async (req, res) => {
+  const oldRefreshToken = req.cookies.refreshToken;
+  if (!oldRefreshToken)
+    return res.status(401).json({ message: "No refresh token" });
+
+  const { accessToken, refreshToken } =
+    await AuthService.refreshToken(oldRefreshToken);
+
+  res.cookie("accessToken", accessToken, {
+    ...cookieOptions,
+    maxAge: 15 * 60 * 1000, // 15 minutes
   });
+
+  res.cookie("refreshToken", refreshToken, {
+    ...cookieOptions,
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  });
+
+  const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
+  const user = await User.findById(decoded.id).select("-password -refreshToken");
+
+  res.json({ success: true, user });
+});
+
+
+// ===== LOGOUT =====
+exports.logoutUser = asyncHandler(async (req, res) => {
+  res.clearCookie("accessToken", { ...cookieOptions });
+  res.clearCookie("refreshToken", { ...cookieOptions });
 
   res.json({ message: "Logged out" });
 });

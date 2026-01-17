@@ -1,13 +1,15 @@
 
-import "../../styles/Login.css"; 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axiosClient from "../../api/axiosClient";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import { motion } from "framer-motion";
+import { useAuth } from "../../context/AuthContext.js"; 
+import { login } from "../../services/authService.js"; // ✅
+import '../../styles/tailwind.css';
 
-export default function Login({ setIsAuthenticated }) {
+export default function Login() {
+  const { setIsAuthenticated, setUser } = useAuth();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -15,10 +17,6 @@ export default function Login({ setIsAuthenticated }) {
     severity: "success",
   });
   const navigate = useNavigate();
-
-  useEffect(() => {
-    setFormData({ email: "", password: "" });
-  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,57 +26,47 @@ export default function Login({ setIsAuthenticated }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axiosClient.post("/auth/login", formData);
+      const data = await login(formData);
 
-      if (res.data.success) {
+      if (data.success) {
         setIsAuthenticated(true);
-
+        setUser(data.user);
 
         setSnackbar({
           open: true,
-          message: res.data.message || "Login successful!",
+          message: data.message || "Login successful!",
           severity: "success",
         });
 
-      
-setTimeout(() => {
-  if (res.data.user.role === "admin") {
-    navigate("/admin/dashboard"); 
-  } else {
-    navigate("/");
-  }
-}, 1000);
-
-
+        setTimeout(() => {
+          navigate(data.user.role === "admin" ? "/admin/dashboard" : "/");
+        }, 1000);
       } else {
         setSnackbar({
           open: true,
-          message: res.data.message || "Login failed!",
+          message: data.message || "Login failed!",
           severity: "error",
         });
       }
     } catch (err) {
-      const msg =
-        err.response?.data?.msg ||
-        (err.response?.data?.errors &&
-          err.response.data.errors.join(", ")) ||
-        "Login failed!";
-      setSnackbar({ open: true, message: msg, severity: "error" });
+      setSnackbar({ open: true, message: err.message, severity: "error" });
     }
   };
 
   return (
-    <div className="login-container">
+    <div className="flex items-center justify-center min-h-screen bg-[#fafafa] p-5 font-sans">
       <motion.div
-        className="login-box"
+        className="w-[350px] p-8 bg-white border border-gray-300 rounded-xl text-center shadow-md max-md:w-[90%] max-sm:w-full max-sm:border-none max-sm:shadow-none"
         initial={{ opacity: 0, y: 60 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
       >
-        <h1 className="login-title">ElectroShop</h1>
+        <h1 className="font-['Billabong'] text-5xl mb-6 max-md:text-4xl max-sm:text-3xl">
+          ElectroShop
+        </h1>
 
-        <form autoComplete="off" onSubmit={handleSubmit} className="login-form">
-          <input
+        <form autoComplete="off" onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <motion.input
             type="email"
             name="email"
             placeholder="Email"
@@ -86,9 +74,11 @@ setTimeout(() => {
             onChange={handleChange}
             required
             autoComplete="off"
+            whileFocus={{ scale: 1.02 }}
+            className="w-full p-3 border border-gray-300 rounded-md bg-[#fafafa] text-sm focus:outline-none focus:border-blue-500 focus:bg-white max-md:p-2.5 max-md:text-sm"
           />
 
-          <input
+          <motion.input
             type="password"
             name="password"
             placeholder="Password"
@@ -96,21 +86,23 @@ setTimeout(() => {
             onChange={handleChange}
             required
             autoComplete="new-password"
+            whileFocus={{ scale: 1.02 }}
+            className="w-full p-3 border border-gray-300 rounded-md bg-[#fafafa] text-sm focus:outline-none focus:border-blue-500 focus:bg-white max-md:p-2.5 max-md:text-sm"
           />
 
           <motion.button
             type="submit"
-            className="login-btn"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            className="w-full py-3 rounded-md font-bold text-white bg-gradient-to-r from-blue-500 via-emerald-400 to-white hover:opacity-90 max-md:py-2.5 max-md:text-sm"
           >
             Login
           </motion.button>
         </form>
 
-        <p className="login-footer">
+        <p className="mt-4 text-sm text-gray-800">
           Don’t have an account?{" "}
-          <Link to="/register" className="login-link">
+          <Link to="/register" className="text-blue-500 font-bold hover:underline">
             Register
           </Link>
         </p>

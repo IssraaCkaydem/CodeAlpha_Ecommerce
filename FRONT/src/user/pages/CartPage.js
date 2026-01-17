@@ -1,196 +1,234 @@
 
 import { useEffect, useState } from "react";
-import { Box, Typography, Button, Paper, Snackbar, Alert } from "@mui/material";
+import { Snackbar, Alert } from "@mui/material";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import axiosClient from "../../api/axiosClient";
-import "../../styles/CartPage.css";
+
+import {
+  fetchCart,
+  removeFromCart,
+  clearCart,
+  confirmOrder,
+} from "../../services/cartService";
 
 export default function CartPage() {
   const navigate = useNavigate();
   const [cart, setCart] = useState({ items: [], total: 0 });
   const [openForm, setOpenForm] = useState(false);
-  const [orderData, setOrderData] = useState({ name: "", phone: "", address: "" });
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "info" });
+  const [orderData, setOrderData] = useState({
+    name: "",
+    phone: "",
+    address: "",
+  });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "info",
+  });
 
-  const fetchCart = async () => {
-    try {
-      const res = await axiosClient.get("/cart", { withCredentials: true });
-      setCart(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
+  // ===== Load cart =====
   useEffect(() => {
-    fetchCart();
+    const loadCart = async () => {
+      try {
+        const data = await fetchCart();
+        setCart(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    loadCart();
   }, []);
 
+  // ===== Handlers =====
   const handleRemove = async (productId) => {
-    try {
-      await axiosClient.post("/cart/remove", { productId }, { withCredentials: true });
-      fetchCart();
-    } catch (err) {
-      console.error(err);
-    }
+    await removeFromCart(productId);
+    setCart(await fetchCart());
   };
 
   const handleClear = async () => {
-    try {
-      await axiosClient.post("/cart/clear", {}, { withCredentials: true });
-      fetchCart();
-    } catch (err) {
-      console.error(err);
-    }
+    await clearCart();
+    setCart(await fetchCart());
   };
 
   const handleConfirmOrder = async () => {
     if (!orderData.name || !orderData.phone || !orderData.address) {
-      setSnackbar({ open: true, message: "Please fill all fields", severity: "warning" });
+      setSnackbar({
+        open: true,
+        message: "Please fill all fields",
+        severity: "warning",
+      });
       return;
     }
 
     if (cart.items.length === 0) {
-      setSnackbar({ open: true, message: "Cart is empty", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Cart is empty",
+        severity: "error",
+      });
       return;
     }
 
-    try {
-      const items = cart.items.map((item) => ({
-        product: item.product._id,
-        quantity: item.quantity,
-      }));
+    const items = cart.items.map((item) => ({
+      product: item.product._id,
+      quantity: item.quantity,
+    }));
 
-      await axiosClient.post("/orders/confirm", { ...orderData, items }, { withCredentials: true });
+    await confirmOrder(orderData, items);
 
-      setSnackbar({ open: true, message: "Order confirmed successfully!", severity: "success" });
-      setOpenForm(false);
-      setOrderData({ name: "", phone: "", address: "" });
-      fetchCart();
-    } catch (err) {
-      console.error(err);
-      const msg = err.response?.data?.msg || "Failed to confirm order";
-      setSnackbar({ open: true, message: msg, severity: "error" });
-    }
+    setSnackbar({
+      open: true,
+      message: "Order confirmed successfully!",
+      severity: "success",
+    });
+
+    setOpenForm(false);
+    setOrderData({ name: "", phone: "", address: "" });
+    setCart(await fetchCart());
   };
 
+  // ===== Render =====
   return (
-    <Box className="cart-container">
-    <Button onClick={() => navigate("/")} style={{ marginBottom: "20px" }}>
-  ← Back
-</Button>
+    <div className="min-h-screen p-8 bg-gradient-to-br from-sky-500 via-emerald-400 to-white">
+   
+        <button
+        onClick={() => navigate(-1)}
+        className="mb-6 flex items-center gap-2 text-white/90 hover:text-white transition"
+      >
+        ← <span className="underline">Back</span>
+      </button>
 
-      <Typography variant="h3" className="cart-title">
+      <h1 className="text-4xl font-bold text-center mb-8 text-gray-900">
         Your Cart
-      </Typography>
+      </h1>
 
       {cart.items.length === 0 ? (
-        <Typography variant="h6" className="empty-cart">
+        <p className="text-center text-xl text-gray-700">
           Your cart is empty
-        </Typography>
+        </p>
       ) : (
-        <Box className="cart-items">
+        <div className="max-w-4xl mx-auto space-y-4">
           {cart.items.map((item) => (
             <motion.div
               key={item.product._id}
-              className="cart-item"
-              initial={{ opacity: 0, x: -50 }}
+              initial={{ opacity: 0, x: -40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4 }}
+              className="flex items-center gap-4 bg-white p-4 rounded-xl shadow-md"
             >
               <img
                 src={item.product.imageUrl || "/fallback.png"}
                 alt={item.product.name}
-                className="cart-item-img"
+                className="w-24 h-24 object-contain rounded"
               />
-              <Box className="cart-item-info">
-                <Typography variant="h6">{item.product.name}</Typography>
-                <Typography>Quantity: {item.quantity}</Typography>
-                <Typography>Price: ${item.product.price}</Typography>
-              </Box>
-              <Button
-                variant="contained"
-                className="remove-btn"
+
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold">
+                  {item.product.name}
+                </h3>
+                <p>Quantity: {item.quantity}</p>
+                <p>Price: ${item.product.price}</p>
+              </div>
+
+              <button
                 onClick={() => handleRemove(item.product._id)}
+                className="bg-gradient-to-r from-red-500 to-red-700 text-white px-4 py-2 rounded-full font-semibold hover:opacity-90"
               >
                 Remove
-              </Button>
+              </button>
             </motion.div>
           ))}
 
-          <Box className="cart-total">
-            <Typography variant="h5">Total: ${cart.total}</Typography>
-            <Button variant="contained" className="clear-btn" onClick={handleClear}>
-              Remove All
-            </Button>
-            <Button
-              variant="contained"
-              color="success"
-              style={{ marginLeft: "10px" }}
-              onClick={() => setOpenForm(true)}
-            >
-              Confirm Order
-            </Button>
-          </Box>
+          <div className="flex justify-between items-center mt-6">
+            <h2 className="text-2xl font-bold">
+              Total: ${cart.total}
+            </h2>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleClear}
+                className="bg-gradient-to-r from-yellow-400 to-yellow-600 px-4 py-2 rounded-full font-semibold"
+              >
+                Remove All
+              </button>
+
+              <button
+                onClick={() => setOpenForm(true)}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full font-semibold"
+              >
+                Confirm Order
+              </button>
+            </div>
+          </div>
 
           {openForm && (
-            <Paper elevation={4} className="order-form">
-              <Typography variant="h5" style={{ marginBottom: "15px" }}>
+            <div className="bg-white p-6 mt-6 rounded-xl shadow-lg">
+              <h3 className="text-2xl font-bold mb-4">
                 Complete Your Order
-              </Typography>
+              </h3>
 
               <input
                 type="text"
                 placeholder="Your Name"
+                className="w-full p-3 border rounded mb-3"
                 value={orderData.name}
                 onChange={(e) =>
                   setOrderData({ ...orderData, name: e.target.value })
                 }
-                className="form-input"
               />
 
               <input
                 type="text"
                 placeholder="Phone Number"
+                className="w-full p-3 border rounded mb-3"
                 value={orderData.phone}
                 onChange={(e) =>
                   setOrderData({ ...orderData, phone: e.target.value })
                 }
-                className="form-input"
               />
 
               <textarea
                 placeholder="Address"
+                className="w-full p-3 border rounded mb-3 h-24"
                 value={orderData.address}
                 onChange={(e) =>
                   setOrderData({ ...orderData, address: e.target.value })
                 }
-                className="form-textarea"
               />
 
-              <Box style={{ marginTop: "10px", display: "flex", gap: "10px" }}>
-                <Button variant="contained" color="success" onClick={handleConfirmOrder}>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleConfirmOrder}
+                  className="bg-green-600 text-white px-5 py-2 rounded font-semibold"
+                >
                   Submit
-                </Button>
-                <Button variant="outlined" color="error" onClick={() => setOpenForm(false)}>
+                </button>
+
+                <button
+                  onClick={() => setOpenForm(false)}
+                  className="border border-red-500 text-red-500 px-5 py-2 rounded font-semibold"
+                >
                   Cancel
-                </Button>
-              </Box>
-            </Paper>
+                </button>
+              </div>
+            </div>
           )}
-        </Box>
+        </div>
       )}
 
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+        <Alert
+          severity={snackbar.severity}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Box>
+    </div>
   );
 }
+

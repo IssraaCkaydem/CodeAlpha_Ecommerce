@@ -1,56 +1,21 @@
 
-const Order = require("../models/Order");
-const Cart = require("../models/Cart"); // لو عندك موديل الكارت
 const asyncHandler = require("../utils/asyncHandler");
+const OrderService = require("../services/order.service");
 
 exports.confirmOrder = asyncHandler(async (req, res) => {
-  const { name, phone, address, items } = req.body;
+  const userId = req.user.id;
 
-  // Validate fields
-  if (!name || !phone || !address || !items) {
-    return res.status(400).json({ msg: "Missing required fields" });
-  }
-
-  if (!Array.isArray(items) || items.length === 0) {
-    return res.status(400).json({ msg: "Cart is empty" });
-  }
-
-  for (let item of items) {
-    if (!item.product || !item.quantity || item.quantity <= 0) {
-      return res.status(400).json({ msg: "Invalid items in cart" });
-    }
-  }
-
-  const phoneRegex = /^[0-9]{8,15}$/;
-  if (!phoneRegex.test(phone)) {
-    return res.status(400).json({ msg: "Invalid phone number" });
-  }
-
-  const newOrder = new Order({
-    user: req.user.id,
-    name,
-    phone,
-    address,
-    items,
-    status: "pending",
-    createdAt: new Date(),
-  });
-
-  await newOrder.save();
-
-  await Cart.findOneAndUpdate({ user: req.user.id }, { items: [] });
+  const order = await OrderService.confirmOrder(userId, req.body);
 
   res.status(201).json({
     success: true,
     msg: "Order confirmed successfully",
-    order: newOrder,
+    order,
   });
 });
 
 exports.getAllOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find()
-    .populate("user", "name email")
-    .sort({ createdAt: -1 });
+  const orders = await OrderService.getAllOrders();
 
   res.status(200).json({
     success: true,
@@ -60,15 +25,11 @@ exports.getAllOrders = asyncHandler(async (req, res) => {
 
 exports.updateOrderStatus = asyncHandler(async (req, res) => {
   const { status } = req.body;
-  const allowed = ["pending", "processing", "shipped", "delivered"];
-  if (!allowed.includes(status)) return res.status(400).json({ msg: "Invalid status" });
+  const orderId = req.params.id;
 
-  const updatedOrder = await Order.findByIdAndUpdate(
-    req.params.id,
-    { status },
-    { new: true }
-  );
+  const updatedOrder = await OrderService.updateOrderStatus(orderId, status);
 
+  // Send socket event
   const io = req.app.get("io");
   io.emit("orderUpdated", updatedOrder);
 
@@ -80,7 +41,9 @@ exports.updateOrderStatus = asyncHandler(async (req, res) => {
 });
 
 exports.getUserOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({ user: req.user.id }).sort({ createdAt: -1 });
+  const userId = req.user.id;
+
+  const orders = await OrderService.getUserOrders(userId);
 
   res.status(200).json({
     success: true,

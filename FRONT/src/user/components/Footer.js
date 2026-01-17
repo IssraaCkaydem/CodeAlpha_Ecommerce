@@ -1,8 +1,8 @@
+
 import React, { useState } from "react";
 import { Box, Typography, TextField, Button, IconButton } from "@mui/material";
 import { motion } from "framer-motion";
 import { FaFacebook, FaInstagram, FaTwitter, FaTiktok } from "react-icons/fa";
-import "../../styles/Footer.css";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -18,56 +18,72 @@ export default function Footer() {
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8 }}
-      className="footer"
+      className="bg-gradient-to-br from-blue-500 to-green-400 text-white px-5 pt-10 pb-5"
     >
-      <Box className="footer-container">
-        {/* Contact */}
-        <Box className="footer-section">
-          <Typography variant="h6" gutterBottom>Contact Us</Typography>
-          <Typography>Email: support@myshop.com</Typography>
-          <Typography>Phone: +961 70 123 456</Typography>
-          <Typography>Address: Beirut, Lebanon</Typography>
+      <Box className="max-w-6xl mx-auto flex flex-wrap justify-between">
+        
+        <Box className="flex-1 min-w-[220px] m-2">
+          <Typography variant="h6" className="font-bold mb-2">
+            Contact Us
+          </Typography>
+          <Typography className="my-1">Email: support@myshop.com</Typography>
+          <Typography className="my-1">Phone: +961 70 123 456</Typography>
+          <Typography className="my-1">Address: Beirut, Lebanon</Typography>
         </Box>
 
-        {/* About */}
-        <Box className="footer-section">
-          <Typography variant="h6" gutterBottom>About</Typography>
-          <Typography>We are a leading online store providing top-quality products at the best prices.</Typography>
+        <Box className="flex-1 min-w-[220px] m-2">
+          <Typography variant="h6" className="font-bold mb-2">
+            About
+          </Typography>
+          <Typography className="my-1">
+            We are a leading online store providing top-quality products at the best prices.
+          </Typography>
         </Box>
 
-        {/* Policies */}
-        <Box className="footer-section">
-          <Typography variant="h6" gutterBottom>Policies</Typography>
-          <Typography>Privacy Policy</Typography>
-          <Typography>Return & Refund Policy</Typography>
-          <Typography>Terms of Service</Typography>
+        <Box className="flex-1 min-w-[220px] m-2">
+          <Typography variant="h6" className="font-bold mb-2">
+            Policies
+          </Typography>
+          <Typography className="my-1">Privacy Policy</Typography>
+          <Typography className="my-1">Return & Refund Policy</Typography>
+          <Typography className="my-1">Terms of Service</Typography>
         </Box>
 
-        {/* Newsletter + Social */}
-        <Box className="footer-section">
-          <Typography variant="h6" gutterBottom>Newsletter</Typography>
-          <Box display="flex" mb={1}>
+        <Box className="flex-1 min-w-[220px] m-2">
+          <Typography variant="h6" className="font-bold mb-2">
+            Newsletter
+          </Typography>
+
+          <Box className="flex mb-2">
             <TextField
               variant="outlined"
               size="small"
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              sx={{ backgroundColor: "#fff", borderRadius: 1, mr: 1, flex: 1 }}
+              className="bg-white rounded mr-2 flex-1"
             />
-            <Button variant="contained" onClick={handleSubscribe}>Subscribe</Button>
+            <Button
+              variant="contained"
+              onClick={handleSubscribe}
+            >
+              Subscribe
+            </Button>
           </Box>
-          <Typography variant="subtitle1" gutterBottom>Follow us</Typography>
+
+          <Typography variant="subtitle1" className="mb-1">
+            Follow us
+          </Typography>
           <Box>
-            <IconButton><FaFacebook color="#4267B2" /></IconButton>
-            <IconButton><FaInstagram color="#C13584" /></IconButton>
-            <IconButton><FaTwitter color="#1DA1F2" /></IconButton>
-            <IconButton><FaTiktok color="#000" /></IconButton>
+            <IconButton><FaFacebook className="text-blue-700" /></IconButton>
+            <IconButton><FaInstagram className="text-pink-600" /></IconButton>
+            <IconButton><FaTwitter className="text-sky-400" /></IconButton>
+            <IconButton><FaTiktok className="text-black" /></IconButton>
           </Box>
         </Box>
       </Box>
 
-      <Box className="footer-bottom">
+      <Box className="text-center mt-5 pt-3 border-t border-white/30 text-sm">
         <Typography>© 2025 MyShop. All rights reserved.</Typography>
       </Box>
     </motion.footer>

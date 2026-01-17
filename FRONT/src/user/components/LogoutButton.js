@@ -1,21 +1,23 @@
 
 import { Button } from "@mui/material";
-import axiosClient from "../../api/axiosClient"; 
 import { useNavigate } from "react-router-dom";
+import { logout } from "../../services/authService";
+import { useAuth } from "../../context/AuthContext";
 
-export default function LogoutButton({ setIsAuthenticated }) {
+export default function LogoutButton() {
   const navigate = useNavigate();
-
+  const { setIsAuthenticated, setUser } = useAuth();
   const handleLogout = async () => {
     try {
-      await axiosClient.post("/auth/logout"); 
-
+      await logout();
       setIsAuthenticated(false);
-      navigate("/login");
+      setUser(null);
+      navigate("/"); 
     } catch (err) {
-      console.error("Logout failed:", err.response?.data || err.message);
+      console.error("Logout failed:", err);
     }
   };
+  
 
   return (
     <Button onClick={handleLogout} variant="contained" color="primary">
@@ -23,4 +25,3 @@ export default function LogoutButton({ setIsAuthenticated }) {
     </Button>
   );
 }
-

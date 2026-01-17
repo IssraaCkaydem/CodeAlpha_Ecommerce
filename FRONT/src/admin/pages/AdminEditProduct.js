@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import axiosClient from "../../api/axiosClient";
-import "../../styles/AdminEditProduct.css";
 
 export default function AdminEditProduct() {
   const { id } = useParams();
@@ -48,22 +47,75 @@ export default function AdminEditProduct() {
 
   return (
     <motion.div
-      className="admin-edit-container"
+      className="max-w-lg mx-auto p-10 bg-gray-100 rounded-xl shadow-lg"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
-      <h1>Edit Product</h1>
+      <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
+        Edit Product
+      </h1>
+
       {message && (
-        <p className={message.includes("Error") ? "error-message" : "message"}>{message}</p>
+        <p className={`text-center mb-4 font-bold ${message.includes("Error") ? "text-red-500" : "text-green-600"}`}>
+          {message}
+        </p>
       )}
-      <form onSubmit={handleSubmit}>
-        <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Name" required />
-        <input type="text" name="description" value={formData.description} onChange={handleChange} placeholder="Description" />
-        <input type="number" name="price" value={formData.price} onChange={handleChange} placeholder="Price" required />
-        <input type="text" name="imageUrl" value={formData.imageUrl} onChange={handleChange} placeholder="Image URL" />
-        <input type="text" name="category" value={formData.category} onChange={handleChange} placeholder="Category" />
-        <button type="submit">Update Product</button>
+
+      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+        <input
+          type="text"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          placeholder="Name"
+          required
+          className="p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+
+        <input
+          type="text"
+          name="description"
+          value={formData.description}
+          onChange={handleChange}
+          placeholder="Description"
+          className="p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+
+        <input
+          type="number"
+          name="price"
+          value={formData.price}
+          onChange={handleChange}
+          placeholder="Price"
+          required
+          className="p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+
+        <input
+          type="text"
+          name="imageUrl"
+          value={formData.imageUrl}
+          onChange={handleChange}
+          placeholder="Image URL"
+          className="p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+
+        <input
+          type="text"
+          name="category"
+          value={formData.category}
+          onChange={handleChange}
+          placeholder="Category"
+          className="p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+
+        <button
+          type="submit"
+          className="p-3 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition"
+        >
+          Update Product
+        </button>
       </form>
     </motion.div>
   );

@@ -1,78 +1,116 @@
 
 import { useEffect, useState } from "react";
-import axiosClient from "../../api/axiosClient";
-import { io } from "socket.io-client";
 import { Button } from "@mui/material";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
+import {
+  fetchMyOrders,
+  connectOrderSocket,
+  disconnectOrderSocket,
+} from "../../services/orderService";
 
-const socket = io("http://localhost:4000", {
-  withCredentials: true,
-});
-
-const MyOrders = () => {
-  const navigate = useNavigate(); 
+export default function MyOrders() {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
 
-  const fetchOrders = async () => {
-    try {
-      const res = await axiosClient.get("/orders/my-orders"); 
-      setOrders(res.data.orders);
-    } catch (err) {
-      console.error("Error fetching orders:", err.response?.data || err.message);
-    }
-  };
-
   useEffect(() => {
-    fetchOrders();
+    const loadOrders = async () => {
+      try {
+        const data = await fetchMyOrders();
+        setOrders(data);
+      } catch (err) {
+        if (err.message === "UNAUTHORIZED") {
+          navigate("/login");
+        } else {
+          console.error(err);
+        }
+      }
+    };
 
-    socket.on("orderUpdated", (updatedOrder) => {
-      setOrders((prevOrders) =>
-        prevOrders.map((order) =>
-          order._id === updatedOrder._id ? updatedOrder : order
-        )
+    loadOrders();
+
+    // Socket updates
+    connectOrderSocket((updatedOrder) => {
+      setOrders((prev) =>
+        prev.map((o) => (o._id === updatedOrder._id ? updatedOrder : o))
       );
     });
 
-    return () => {
-      socket.off("orderUpdated");
-    };
-  }, []);
+    return () => disconnectOrderSocket();
+  }, [navigate]);
 
   return (
-    <div style={{ padding: "20px" }}>
-      <Button onClick={() => navigate("/")} style={{ marginBottom: "20px" }}>
+    <div className="min-h-screen p-5 sm:p-8 md:p-10 bg-gradient-to-br from-sky-500 via-emerald-400 to-white">
+
+      {/* 🔙 Back */}
+      <Button
+        onClick={() => navigate(-1)}
+        className="mb-6 text-white/90 hover:text-white transition text-sm sm:text-base"
+      >
         ← Back
       </Button>
 
-      <h1>My Orders</h1>
+      {/* Header */}
+      <h1 className="text-center text-3xl sm:text-4xl font-extrabold mb-8 text-white drop-shadow-lg">
+        My Orders
+      </h1>
+
       {orders.length === 0 ? (
-        <p>You have no orders yet.</p>
+        <p className="text-center text-lg sm:text-xl text-white/80">
+          You have no orders yet.
+        </p>
       ) : (
-        orders.map((order) => (
-          <div
-            key={order._id}
-            style={{
-              border: "1px solid #ccc",
-              padding: "10px",
-              marginBottom: "10px",
-              borderRadius: "5px",
-            }}
-          >
-            <p><strong>Order ID:</strong> {order._id}</p>
-            <p><strong>Status:</strong> {order.status}</p>
-            <p><strong>Items:</strong></p>
-            <ul>
-              {order.items.map((item) => (
-                <li key={item._id}>
-                  Product ID: {item.product} - Quantity: {item.quantity}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))
+        <div className="flex flex-col gap-6">
+          {orders.map((order) => (
+            <div
+              key={order._id}
+              className="bg-white rounded-2xl shadow-lg p-4 sm:p-6"
+            >
+              {/* Order Header */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2 sm:gap-0">
+                <p className="text-gray-700 text-sm sm:text-base">
+                  Placed on: {new Date(order.createdAt).toLocaleDateString()}
+                </p>
+
+                <p
+                  className={`font-semibold text-sm sm:text-base ${
+                    order.status === "pending"
+                      ? "text-yellow-500"
+                      : order.status === "processing"
+                      ? "text-blue-500"
+                      : order.status === "shipped"
+                      ? "text-purple-500"
+                      : "text-green-600"
+                  }`}
+                >
+                  {order.status.toUpperCase()}
+                </p>
+              </div>
+
+              {/* Order Items */}
+              <div className="flex flex-col gap-4">
+                {order.items.map((item) => (
+                  <div
+                    key={item._id}
+                    className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 border-b pb-2 last:border-b-0"
+                  >
+                    <img
+                      src={item.product.imageUrl || "/fallback.png"}
+                      alt={item.product.name}
+                      className="w-full sm:w-24 h-24 sm:h-24 object-contain rounded"
+                    />
+                    <div className="flex-1 flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                      <p className="font-bold text-gray-800">{item.product.name}</p>
+                      <p className="text-gray-600 mt-1 sm:mt-0">
+                        ${item.product.price} × {item.quantity}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
-};
-
-export default MyOrders;
+}

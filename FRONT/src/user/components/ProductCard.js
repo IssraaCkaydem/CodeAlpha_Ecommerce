@@ -1,106 +1,115 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Modal, Box, Typography, Button, Snackbar, Alert } from "@mui/material";
+import { Snackbar, Alert } from "@mui/material";
 import { FaHeart } from "react-icons/fa";
-import axiosClient from "../../api/axiosClient";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import {
+  addToWishlist,
+  removeFromWishlist,
+  getWishlist,
+} from "../../services/wishlistService";
 
 export default function ProductCard({ product }) {
-  const [open, setOpen] = useState(false);
-  const [liked, setLiked] = useState(false);
+  const { user } = useAuth(); 
+  const navigate = useNavigate();
+
+  const [wishlistItems, setWishlistItems] = useState([]);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
   });
 
-  const navigate = useNavigate();
-
   const imgSrc = product.imageUrl || product.image || "/fallback.png";
 
-  const handleAddToWishlist = async (e) => {
+  useEffect(() => {
+    if (!user) return; 
+
+    const fetchWishlist = async () => {
+      try {
+        const res = await getWishlist();
+        const ids = res.items.map((item) => item._id);
+        setWishlistItems(ids);
+      } catch (err) {
+        console.error("Error fetching wishlist");
+      }
+    };
+
+    fetchWishlist();
+  }, [user]);
+
+  const isLiked = user && wishlistItems.includes(product._id);
+
+  // ===== toggle wishlist
+  const handleToggleWishlist = async (e) => {
     e.stopPropagation();
+
+    // 🚨 Guest → Login
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
     try {
-      const productId = product._id.toString();
-      await axiosClient.post("/wishlist/add", { productId }, { withCredentials: true });
-      setLiked(true);
-      setSnackbar({
-        open: true,
-        message: `${product.name} added to wishlist!`,
-        severity: "success",
-      });
+      if (!isLiked) {
+        await addToWishlist(product._id);
+        setWishlistItems((prev) => [...prev, product._id]);
+        setSnackbar({
+          open: true,
+          message: "Added to wishlist ❤️",
+          severity: "success",
+        });
+      } else {
+        await removeFromWishlist(product._id);
+        setWishlistItems((prev) =>
+          prev.filter((id) => id !== product._id)
+        );
+        setSnackbar({
+          open: true,
+          message: "Removed from wishlist",
+          severity: "info",
+        });
+      }
     } catch (err) {
       setSnackbar({
         open: true,
-        message: "Failed to add to wishlist",
+        message: "Action failed",
         severity: "error",
       });
     }
   };
 
-  const goToDetails = (e) => {
-    e.stopPropagation();
+  const goToDetails = () => {
     navigate(`/product/${product._id}`);
   };
 
   return (
     <>
-      <div
-        className="product-card"
-        onClick={() => setOpen(true)}
-        style={{
-          position: "relative",
-          background: "#fff",
-          borderRadius: "15px",
-          padding: "15px",
-          boxShadow: "0px 4px 12px rgba(0,0,0,0.1)",
-          cursor: "pointer",
-        }}
-      >
+      <div className="bg-white/70 backdrop-blur-lg rounded-2xl p-5 shadow-lg
+        hover:-translate-y-2 hover:shadow-2xl transition cursor-pointer flex flex-col items-center">
+
         <img
           src={imgSrc}
           alt={product.name}
-          style={{
-            width: "100%",
-            height: "200px",
-            objectFit: "cover",
-            borderRadius: "12px",
-          }}
+          className="h-48 object-contain mb-4"
         />
+
+        <h3 className="font-bold">{product.name}</h3>
+        <p className="text-sky-600 font-bold">${product.price}</p>
 
         <FaHeart
-          onClick={handleAddToWishlist}
-          style={{
-            position: "absolute",
-            top: "15px",
-            right: "15px",
-            fontSize: "1.5rem",
-            color: liked ? "#ff0000" : "#aaa",
-            cursor: "pointer",
-          }}
+          onClick={handleToggleWishlist}
+          className={`text-2xl mt-3 cursor-pointer ${
+            isLiked ? "text-red-500" : "text-gray-300"
+          }`}
         />
 
-        <h3 style={{ margin: "10px 0 5px" }}>{product.name}</h3>
-        <p style={{ fontWeight: "bold", color: "#1e90ff" }}>${product.price}</p>
-
-        {/*  View Details Button  */}
         <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
           onClick={goToDetails}
-          style={{
-            width: "100%",
-            padding: "10px",
-            borderRadius: "12px",
-            border: "none",
-            background: "linear-gradient(45deg, #1e90ff, #00fa9a, #ffffff)",
-            fontSize: "1rem",
-            fontWeight: "bold",
-            cursor: "pointer",
-            color: "#000",
-            marginTop: "10px",
-          }}
+          whileHover={{ scale: 1.05 }}
+          className="mt-4 w-full py-2 rounded-xl bg-gradient-to-r from-sky-500 to-emerald-400"
         >
           View Details
         </motion.button>
@@ -109,14 +118,9 @@ export default function ProductCard({ product }) {
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
-        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        onClose={() => setSnackbar((p) => ({ ...p, open: false }))}
       >
-        <Alert
-          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-          severity={snackbar.severity}
-          variant="filled"
-        >
+        <Alert severity={snackbar.severity} variant="filled">
           {snackbar.message}
         </Alert>
       </Snackbar>
