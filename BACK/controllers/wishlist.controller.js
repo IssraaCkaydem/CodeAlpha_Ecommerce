@@ -1,3 +1,7 @@
+const asyncHandler = require('express-async-handler');
+// أعلى ملف wishlist.controller.js
+const WishlistService = require("../services/wishlist.service"); 
+
 
 exports.addToWishlist = asyncHandler(async (req, res) => {
   const userId = req.user._id;
